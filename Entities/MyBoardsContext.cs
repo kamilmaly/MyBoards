@@ -17,11 +17,16 @@ namespace MyBoards.Entities
 
         public DbSet<Address> Addresses { get; set; }
 
+        public DbSet<WorkItemState> WorkItemStates { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WorkItem>(eb =>
             {
-                eb.Property(wi => wi.State).IsRequired();
+                eb.HasOne(s => s.State)
+                .WithMany()
+                .HasForeignKey(s => s.StateId);
+
                 eb.Property(wi => wi.Area).HasColumnType("varchar(200)");
                 eb.Property(wi => wi.IterationPath).HasColumnName("Iteration_Path");
                 eb.Property(wi => wi.Efford).HasColumnType("decimal(5,2)");
@@ -53,6 +58,7 @@ namespace MyBoards.Entities
                         wit.HasKey(x => new { x.TagId, x.WorkItem });
                         wit.Property(x => x.PublicationDate).HasDefaultValueSql("getutcdate()");
                     });
+                
             });
 
             modelBuilder.Entity<Comment>(eb =>
@@ -65,6 +71,13 @@ namespace MyBoards.Entities
                 .HasOne(u => u.Address)
                 .WithOne(a => a.User)
                 .HasForeignKey<Address>(a => a.UserId);
+
+            modelBuilder.Entity<WorkItemState>(eb =>
+            {
+                eb.Property(s=>s.Value)
+                .IsRequired()
+                .HasMaxLength(50);
+            });
 
         }
     }
