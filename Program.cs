@@ -9,9 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<MyBoardsContext>(
-        option=> option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString"))
-    );
-
+        option=> option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString")));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -11,6 +11,7 @@
 
         public Address Address { get; set; }
 
-        public List<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
+        public virtual List<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
+        public virtual List<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

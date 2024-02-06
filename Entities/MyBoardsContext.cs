@@ -9,22 +9,15 @@ namespace MyBoards.Entities
 
         }
         public DbSet<WorkItem> WorkItems { get; set; }
-
         public DbSet<Issue> Issues { get; set; }
-
-        public DbSet<Epic> Epic { get; set; }
-
-        public DbSet<Task> Task { get; set; }
-
+        public DbSet<Epic> Epics { get; set; }
+        public DbSet<Task> Tasks { get; set; }
         public DbSet<User> Users { get; set; }
-
         public DbSet<Tag> Tags { get; set; }
-
         public DbSet<Comment> Comments { get; set; }
-
         public DbSet<Address> Addresses { get; set; }
-
         public DbSet<WorkItemState> WorkItemStates { get; set; }
+        public DbSet<WorkItemTag> WorkItemTag { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,7 +68,7 @@ namespace MyBoards.Entities
 
                     wit =>
                     {
-                        wit.HasKey(x => new { x.TagId, x.WorkItem });
+                        wit.HasKey(x => new { x.TagId, x.WorkItemId });
                         wit.Property(x => x.PublicationDate).HasDefaultValueSql("getutcdate()");
                     });
                 
