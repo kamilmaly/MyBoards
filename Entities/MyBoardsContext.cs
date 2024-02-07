@@ -80,10 +80,18 @@ namespace MyBoards.Entities
                 eb.Property(x => x.UpdatedDate).ValueGeneratedOnUpdate();
             });
 
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Address)
-                .WithOne(a => a.User)
-                .HasForeignKey<Address>(a => a.UserId);
+            modelBuilder.Entity<User>(eb =>
+            {
+              eb.HasOne(u => u.Address)
+               .WithOne(a => a.User)
+               .HasForeignKey<Address>(a => a.UserId);
+
+                eb.HasMany(w => w.Comments)
+                .WithOne(u => u.Author)
+                .HasForeignKey(w => w.AuthorId)
+                .OnDelete(DeleteBehavior.NoAction);
+            });
+
 
             modelBuilder.Entity<WorkItemState>(eb =>
             {
