@@ -89,7 +89,7 @@ namespace MyBoards.Entities
             {
                 eb.Property(s=>s.Value)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(60);
             });
 
         }
