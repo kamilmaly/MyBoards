@@ -103,21 +103,21 @@ namespace MyBoards.Entities
                 .HasMaxLength(60);
 
                 eb.HasData(
-                    new WorkItemState { Id = 1, Value = "To do" },
-                    new WorkItemState { Id = 2, Value = "Doing" },
-                    new WorkItemState { Id = 3, Value = "Done" }
+                    new WorkItemState() { Id = 1, Value = "To do" },
+                    new WorkItemState() { Id = 2, Value = "Doing" },
+                    new WorkItemState() { Id = 3, Value = "Done" }
                     );
             });
 
             modelBuilder.Entity<Tag>(eb =>
             {
                 eb.HasData(
-                    new Tag { Id = 1, Value = "Web" },
-                    new Tag { Id = 2, Value = "UI" },
-                    new Tag { Id = 3, Value = "Desktop" },
-                    new Tag { Id = 4, Value = "API" },
-                    new Tag { Id = 5, Value = "Service" }
-                    ) ;
+                    new Tag() { Id = 1, Value = "Web" },
+                    new Tag() { Id = 2, Value = "UI" },
+                    new Tag() { Id = 3, Value = "Desktop" },
+                    new Tag() { Id = 4, Value = "API" },
+                    new Tag() { Id = 5, Value = "Service" }
+                    );
             });
 
 

@@ -33,7 +33,7 @@ if (pendingMigrations.Any())
 var users = dbContext.Users.ToList();
 if (!users.Any())
 {
-    var user1 = new User
+    var user1 = new User()
     {
         FullName = "David Tool",
         Email = "David@vp.pl",
@@ -45,7 +45,7 @@ if (!users.Any())
             PostalCode = "AK400"
         }
     };
-    var user2 = new User
+    var user2 = new User()
     {
         FullName = "Pavlo Ther",
         Email = "pavlo@vp.pl",
