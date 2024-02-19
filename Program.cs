@@ -205,11 +205,13 @@ app.MapDelete("deleteWorkItemTags", async (MyBoardsContext db) =>
 
 app.MapDelete("deleteUser", async (MyBoardsContext db) =>
 {
-    var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
-    var userComments = await db.Comments.Where(c => c.AuthorId == user.Id).ToListAsync();
+    var user = await db.Users
+    .Include(u=> u.Comments)
+    .FirstAsync(u => u.Id == Guid.Parse("6D834BAE-67FE-4A1C-CBD8-08DA10AB0E61"));
+    //var userComments = await db.Comments.Where(c => c.AuthorId == user.Id).ToListAsync();
     
-    db.Comments.RemoveRange(userComments);
-    await db.SaveChangesAsync();
+    //db.Comments.RemoveRange(userComments);
+    //await db.SaveChangesAsync();
 
     db.Users.Remove(user);
     await db.SaveChangesAsync();
