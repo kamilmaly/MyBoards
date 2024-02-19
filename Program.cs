@@ -3,6 +3,7 @@ using MyBoards.Entities;
 using MyBoards.Migrations;
 using System.Diagnostics.Metrics;
 using System.IO;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,12 +89,32 @@ app.MapGet("data", async (MyBoardsContext db) =>
 
     //return top5NewestComments;
 
-    var statesCount = await db.WorkItems
-    .GroupBy(x => x.StateId)
-    .Select(g => new { stateId = g.Key, count = g.Count() })
+    //var statesCount = await db.WorkItems
+    //.GroupBy(x => x.StateId)
+    //.Select(g => new { stateId = g.Key, count = g.Count() })
+    //.ToListAsync();
+
+    //return statesCount;
+
+    //var epicList = await db.Epics
+    //.Where(e=>e.StateId == 4)
+    //.OrderByDescending(w => w.Priority)
+    //.ToListAsync();
+
+    //return epicList;
+
+    var authorsCommentCounts = await db.Comments
+    .GroupBy(x => x.AuthorId)
+    .Select(g => new {g.Key, Count = g.Count() })
     .ToListAsync();
 
-    return statesCount;
+    var topAuthor = authorsCommentCounts
+    .First(a => a.Count == authorsCommentCounts.Max(acc => acc.Count));
+
+    var userDetails = db.Users.First(u => u.Id == topAuthor.Key);
+
+    return new { userDetails, commentCount = topAuthor.Count };
+
 
 });
 
