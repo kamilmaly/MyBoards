@@ -105,7 +105,7 @@ app.MapGet("data", async (MyBoardsContext db) =>
 
     var authorsCommentCounts = await db.Comments
     .GroupBy(x => x.AuthorId)
-    .Select(g => new {g.Key, Count = g.Count() })
+    .Select(g => new { g.Key, Count = g.Count() })
     .ToListAsync();
 
     var topAuthor = authorsCommentCounts
@@ -130,6 +130,49 @@ app.MapPost("update", async (MyBoardsContext db) =>
     await db.SaveChangesAsync();
 
     return epic;
+});
+
+app.MapPost("createTags", async (MyBoardsContext db) =>
+{
+    Tag mvctag = new Tag()
+    {
+        Value = "MVC"
+    };
+
+    Tag asptag = new Tag()
+    {
+        Value = "ASP"
+    };
+    var tags = new List<Tag>() { mvctag, asptag };
+    //await db. AddAsync(tag);
+    //await db.Tags.AddAsync(mvctag);
+    await db.Tags.AddRangeAsync(tags);
+    await db.SaveChangesAsync();
+
+    return tags;
+});
+
+app.MapPost("createUsers", async (MyBoardsContext db) =>
+{
+    var address = new Address()
+    {
+        Id = Guid.Parse("74A154C0-69B6-4B1F-47C1-08DA10AB0E33"),
+        Country ="Brazil",
+        City="Bako",
+        Street="Bako street",
+    };
+
+    var user = new User()
+    {
+        Email = "tot@test.com",
+        FullName = "Test User",
+        Address = address,
+    };
+
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+
+    return user;
 });
 
 app.Run();
