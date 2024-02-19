@@ -127,7 +127,7 @@ app.MapGet("data", async (MyBoardsContext db) =>
 app.MapGet("getUserComments", async (MyBoardsContext db) =>
 {
     var user = await db.Users
-      .Include(u => u.Comments).ThenInclude(c=>c.WorkItem)
+      .Include(u => u.Comments).ThenInclude(c => c.WorkItem)
       .Include(u => u.Address)
       .FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
 
@@ -173,9 +173,9 @@ app.MapPost("createUsers", async (MyBoardsContext db) =>
     var address = new Address()
     {
         Id = Guid.Parse("74A154C0-69B6-4B1F-47C1-08DA10AB0E33"),
-        Country ="Brazil",
-        City="Bako",
-        Street="Bako street",
+        Country = "Brazil",
+        City = "Bako",
+        Street = "Bako street",
     };
 
     var user = new User()
@@ -189,6 +189,30 @@ app.MapPost("createUsers", async (MyBoardsContext db) =>
     await db.SaveChangesAsync();
 
     return user;
+});
+
+app.MapDelete("deleteWorkItemTags", async (MyBoardsContext db) =>
+{
+    var workItemTags = await db.WorkItemTag.Where(c => c.WorkItemId == 12).ToListAsync();
+    db.WorkItemTag.RemoveRange(workItemTags);
+
+    var workItem = await db.WorkItems.FirstAsync(c => c.Id == 16);
+
+    db.RemoveRange(workItem);
+
+    await db.SaveChangesAsync();
+});
+
+app.MapDelete("deleteUser", async (MyBoardsContext db) =>
+{
+    var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+    var userComments = await db.Comments.Where(c => c.AuthorId == user.Id).ToListAsync();
+    
+    db.Comments.RemoveRange(userComments);
+    await db.SaveChangesAsync();
+
+    db.Users.Remove(user);
+    await db.SaveChangesAsync();
 });
 
 app.Run();
