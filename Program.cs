@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using MyBoards.Entities;
 using MyBoards.Migrations;
 using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
 builder.Services.AddDbContext<MyBoardsContext>(
         option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString")));
@@ -116,6 +122,16 @@ app.MapGet("data", async (MyBoardsContext db) =>
     return new { userDetails, commentCount = topAuthor.Count };
 
 
+});
+
+app.MapGet("getUserComments", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+      .Include(u => u.Comments).ThenInclude(c=>c.WorkItem)
+      .Include(u => u.Address)
+      .FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+
+    return user;
 });
 
 app.MapPost("update", async (MyBoardsContext db) =>
