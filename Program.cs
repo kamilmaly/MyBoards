@@ -124,6 +124,51 @@ app.MapGet("data", async (MyBoardsContext db) =>
 
 });
 
+app.MapGet("changeTracker", async (MyBoardsContext db) =>
+{
+    var user = await db.Users
+    .FirstAsync(u => u.Id == Guid.Parse("8ACE902E-A25C-4168-CBC1-08DA10AB0E61"));
+
+    var entries1 = db.ChangeTracker.Entries();
+
+    user.Email = "testttest@test.com";
+
+    var entries2 = db.ChangeTracker.Entries();
+
+    db.SaveChanges();
+
+    return user;
+
+});
+
+app.MapGet("changeTrackerDeleted", async (MyBoardsContext db) =>
+{
+    var workItem = new Epic()
+    {
+        Id = 2
+    };
+
+    var entry = db.Attach(workItem);
+    entry.State = EntityState.Deleted;
+
+    db.SaveChanges();
+    return workItem;
+
+});
+
+app.MapGet("noTracking", async (MyBoardsContext db) =>
+{
+    var states = db.WorkItemStates
+    .AsNoTracking()
+    .ToList();
+
+    var entries1 = db.ChangeTracker.Entries();
+
+    return states;
+
+});
+
+
 app.MapGet("getUserComments", async (MyBoardsContext db) =>
 {
     var user = await db.Users
