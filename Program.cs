@@ -124,6 +124,37 @@ app.MapGet("data", async (MyBoardsContext db) =>
 
 });
 
+app.MapGet("dataSqlRaw", async (MyBoardsContext db) =>
+{
+    var minWorkItemsCount = "85";
+
+    //    var states = db.WorkItemStates
+    //    .FromSqlRaw(@"
+    //SELECT wis.Id,wis.Value
+    //FROM WorkItemStates wis
+    //JOIN WorkItems wi on wi.StateId = wis.Id
+    //GROUP BY wis.Id,wis.Value
+    //HAVING COUNT(*) > 85
+    //")
+    var states = db.WorkItemStates
+    .FromSqlInterpolated($@"
+SELECT wis.Id,wis.Value
+FROM WorkItemStates wis
+JOIN WorkItems wi on wi.StateId = wis.Id
+GROUP BY wis.Id,wis.Value
+HAVING COUNT(*) > {minWorkItemsCount}")
+    .ToList();
+
+    db.Database.ExecuteSqlRaw(@"
+UPDATE Comments
+SET UpdatedDate = GETDATE()
+WHERE AuthorId = '6EB04543-F56B-4827-CC11-08DA10AB0E61'");
+
+    var entries = db.ChangeTracker.Entries();
+    return states;
+
+});
+
 app.MapGet("changeTracker", async (MyBoardsContext db) =>
 {
     var user = await db.Users
@@ -251,10 +282,10 @@ app.MapDelete("deleteWorkItemTags", async (MyBoardsContext db) =>
 app.MapDelete("deleteUser", async (MyBoardsContext db) =>
 {
     var user = await db.Users
-    .Include(u=> u.Comments)
+    .Include(u => u.Comments)
     .FirstAsync(u => u.Id == Guid.Parse("6D834BAE-67FE-4A1C-CBD8-08DA10AB0E61"));
     //var userComments = await db.Comments.Where(c => c.AuthorId == user.Id).ToListAsync();
-    
+
     //db.Comments.RemoveRange(userComments);
     //await db.SaveChangesAsync();
 
