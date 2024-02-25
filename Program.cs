@@ -19,7 +19,9 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 builder.Services.AddDbContext<MyBoardsContext>(
-        option => option.UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString")));
+        option => option
+        .UseLazyLoadingProxies()
+        .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString")));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -159,6 +161,22 @@ app.MapGet("dataViewKeyLess", async (MyBoardsContext db) =>
 {
     var topAuthors = db.ViewTopAuthors.ToList();
     return topAuthors;
+});
+
+app.MapGet("dataLazyLoading", async (MyBoardsContext db) =>
+{
+    var withAddress = true;
+
+    var user = db.Users
+        .First(u => u.Id == Guid.Parse("E72E6A2E-40A2-41AA-CBC0-08DA10AB0E61"));
+
+    if (withAddress)
+    {
+        var result = new { FullName = user.FullName, Address = $"{user.Address.Street} {user.Address.City}"};
+        return result;
+    }
+
+    return new { FullName = user.FullName, Address = "-" };
 });
 
 app.MapGet("changeTracker", async (MyBoardsContext db) =>
