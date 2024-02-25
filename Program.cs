@@ -155,6 +155,12 @@ WHERE AuthorId = '6EB04543-F56B-4827-CC11-08DA10AB0E61'");
 
 });
 
+app.MapGet("dataViewKeyLess", async (MyBoardsContext db) =>
+{
+    var topAuthors = db.ViewTopAuthors.ToList();
+    return topAuthors;
+});
+
 app.MapGet("changeTracker", async (MyBoardsContext db) =>
 {
     var user = await db.Users
