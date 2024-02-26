@@ -15,6 +15,8 @@ namespace MyBoards.Entities.Configurations
             .WithOne(u => u.Author)
             .HasForeignKey(w => w.AuthorId)
             .OnDelete(DeleteBehavior.ClientCascade);
+
+            eb.HasIndex(u => new { u.Email, u.FullName });
         }
     }
 }
