@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using MyBoards.Dto;
 using MyBoards.Entities;
 using MyBoards.Migrations;
 using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +22,7 @@ builder.Services.Configure<JsonOptions>(options =>
 
 builder.Services.AddDbContext<MyBoardsContext>(
         option => option
-        .UseLazyLoadingProxies()
+        // .UseLazyLoadingProxies()
         .UseSqlServer(builder.Configuration.GetConnectionString("MyBoardsConnectionString")));
 var app = builder.Build();
 
@@ -163,6 +165,43 @@ app.MapGet("dataViewKeyLess", async (MyBoardsContext db) =>
     return topAuthors;
 });
 
+app.MapGet("pagination", async (MyBoardsContext db) =>
+{
+    var filter = "a";
+    string sortBy = "FullName";
+    bool sortByDescending = false;
+    int pageNumber = 1;
+    int pageSize = 10;
+
+    var query = db.Users
+            .Where(u => filter == null ||
+            (u.Email.Contains(filter.ToLower()) || u.FullName.Contains(filter.ToLower())));
+    var totalCount = query.Count();
+
+    if (sortBy != null)
+    {
+        var columnsSelector = new Dictionary<string, Expression<Func<User, object>>>
+        {
+            {nameof(User.Email), user => user.Email },
+            {nameof(User.FullName), user => user.FullName },
+        };
+
+        var sortByExpression = columnsSelector[sortBy];
+        query = sortByDescending
+            ? query.OrderByDescending(sortByExpression)
+            : query.OrderBy(sortByExpression);
+    }
+
+    var result = query.Skip(pageSize * (pageNumber - 1))
+        .Take(pageSize)
+        .ToList();
+
+    var pagedResult = new PagedResult<User>(result, totalCount, pageSize, pageNumber);
+
+    return pagedResult;
+});
+
+
 app.MapGet("dataLazyLoading", async (MyBoardsContext db) =>
 {
     var withAddress = true;
@@ -172,7 +211,7 @@ app.MapGet("dataLazyLoading", async (MyBoardsContext db) =>
 
     if (withAddress)
     {
-        var result = new { FullName = user.FullName, Address = $"{user.Address.Street} {user.Address.City}"};
+        var result = new { FullName = user.FullName, Address = $"{user.Address.Street} {user.Address.City}" };
         return result;
     }
 
