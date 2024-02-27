@@ -128,6 +128,19 @@ app.MapGet("data", async (MyBoardsContext db) =>
 
 });
 
+app.MapGet("selectData", async (MyBoardsContext db) =>
+{
+    var userFullNames = await db.Users
+        .Include(u => u.Address)
+        .Include(u => u.Comments)
+        .Where(u => u.Address.Country == "Albania")
+        .SelectMany(u => u.Comments)
+        .Select(c => c.Message)
+        .ToListAsync();
+
+    return userFullNames;
+});
+
 app.MapGet("dataSqlRaw", async (MyBoardsContext db) =>
 {
     var minWorkItemsCount = "85";
