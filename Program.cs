@@ -140,6 +140,24 @@ app.MapGet("selectData", async (MyBoardsContext db) =>
 
     return userFullNames;
 });
+app.MapGet("datanplus1", async (MyBoardsContext db) =>
+{
+    var users = await db.Users
+    .Include(u => u.Address)
+    .Include(u => u.Comments)
+    .Where(u=> u.Address.Country == "Albania")
+    .ToListAsync();
+
+    foreach (var user in users)
+    {
+        var usercomments = user.Comments;
+        foreach (var comment in usercomments)
+        {
+            //Process (comment);
+        }
+    }
+});
+
 
 app.MapGet("dataSqlRaw", async (MyBoardsContext db) =>
 {
