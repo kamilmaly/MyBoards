@@ -1,3 +1,4 @@
+using LinqToDB.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using MyBoards.Dto;
@@ -140,6 +141,33 @@ app.MapGet("selectData", async (MyBoardsContext db) =>
 
     return userFullNames;
 });
+
+app.MapPost("update", async (MyBoardsContext db) =>
+{
+    var comments = db.Comments
+        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1))
+        .ToList();
+
+    foreach (var comment in comments)
+    {
+        comment.Message = "test";
+    }
+
+    db.SaveChanges();
+});
+
+app.MapPost("updateLinq2Db", async (MyBoardsContext db) =>
+{
+    var comments = db.Comments
+        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1));
+
+    await LinqToDB.LinqExtensions.UpdateAsync(comments.ToLinqToDB(), x => new Comment
+    {
+        Message = "test"
+    });
+});
+
+
 app.MapGet("datanplus1", async (MyBoardsContext db) =>
 {
     var users = await db.Users
