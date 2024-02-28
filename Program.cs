@@ -1,13 +1,12 @@
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MyBoards;
 using MyBoards.Dto;
 using MyBoards.Entities;
-using MyBoards.Migrations;
-using System.Diagnostics.Metrics;
-using System.IO;
-using System.Linq;
+using MyBoards.Sieve;
+using Sieve.Models;
+using Sieve.Services;
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 
@@ -15,9 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddScoped<ISieveProcessor, ApplicationSieveProcessor>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.Configure<JsonOptions>(options =>
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
@@ -43,7 +43,7 @@ if (pendingMigrations.Any())
     dbContext.Database.Migrate();
 }
 
-DataGenerator.Seed(dbContext);
+//DataGenerator.Seed(dbContext);
 
 var users = dbContext.Users.ToList();
 if (!users.Any())
@@ -144,32 +144,6 @@ app.MapGet("selectData", async (MyBoardsContext db) =>
 
     return userFullNames;
 });
-
-app.MapPost("update", async (MyBoardsContext db) =>
-{
-    var comments = db.Comments
-        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1))
-        .ToList();
-
-    foreach (var comment in comments)
-    {
-        comment.Message = "test";
-    }
-
-    db.SaveChanges();
-});
-
-app.MapPost("updateLinq2Db", async (MyBoardsContext db) =>
-{
-    var comments = db.Comments
-        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1));
-
-    await LinqToDB.LinqExtensions.UpdateAsync(comments.ToLinqToDB(), x => new Comment
-    {
-        Message = "test"
-    });
-});
-
 
 app.MapGet("datanplus1", async (MyBoardsContext db) =>
 {
@@ -416,6 +390,58 @@ app.MapDelete("deleteUser", async (MyBoardsContext db) =>
 
     db.Users.Remove(user);
     await db.SaveChangesAsync();
+});
+
+app.MapPost("sieve", async ([FromBody] SieveModel query, ISieveProcessor sieveProcessor
+    , MyBoardsContext db) =>
+{
+    var epics = db.Epics
+    .Include(e => e.Author)
+    .AsQueryable();
+
+    var dtos = await sieveProcessor
+    .Apply(query, epics)
+    .Select(e => new EpicDto()
+    {
+        Id = e.Id,
+        Area = e.Area,
+        Priority = e.Priority,
+        StartDate = e.StartDate,
+        AuthorFullName = e.Author.FullName
+    }).ToListAsync();
+
+    var totalCount = await sieveProcessor
+    .Apply(query, epics, applyPagination: false, applySorting: false)
+    .CountAsync();
+
+    var result = new PagedResult<EpicDto>(dtos, totalCount, query.PageSize.Value, query.Page.Value);
+
+    return result;
+});
+
+app.MapPost("updateWithoutLinq2Db", async (MyBoardsContext db) =>
+{
+    var comments = db.Comments
+        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1))
+        .ToList();
+
+    foreach (var comment in comments)
+    {
+        comment.Message = "test";
+    }
+
+    db.SaveChanges();
+});
+
+app.MapPost("updateLinq2Db", async (MyBoardsContext db) =>
+{
+    var comments = db.Comments
+        .Where(e => e.CreatedDate > new DateTime(2022, 6, 1));
+
+    await LinqToDB.LinqExtensions.UpdateAsync(comments.ToLinqToDB(), x => new Comment
+    {
+        Message = "test"
+    });
 });
 
 app.Run();
