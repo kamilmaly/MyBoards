@@ -1,6 +1,7 @@
 using LinqToDB.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using MyBoards;
 using MyBoards.Dto;
 using MyBoards.Entities;
 using MyBoards.Migrations;
@@ -41,6 +42,8 @@ if (pendingMigrations.Any())
 {
     dbContext.Database.Migrate();
 }
+
+DataGenerator.Seed(dbContext);
 
 var users = dbContext.Users.ToList();
 if (!users.Any())
